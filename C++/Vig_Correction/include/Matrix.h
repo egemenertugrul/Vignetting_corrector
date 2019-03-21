@@ -1,7 +1,7 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 
-#include "Commondata.h"
+#include "commondata.h"
 
 int  bginv(double *a, int m, int n, double *aa, double eps1, double *u, double* v, int ka);
 int  bmuav(double *a, int m, int  n, double* u, double* v, double eps1, int ka);
@@ -21,10 +21,10 @@ bool MatrixMulti(float *m1, int row1, int col1, int *m2, int row2, int col2, flo
 bool MatrixMulti(float *m1, int row1, int col1, float *m2, int row2, int col2, float *m3);
 
 
-void CalPCATransParam(float *lambda, 
+void CalPCATransParam(float *lambda,
 					  float **trans_vector,
-					  float **pTrainFeat, 
-					  int nTrainSam, int ndim, 
+					  float **pTrainFeat,
+					  int nTrainSam, int ndim,
 					  int PCA_ndim, float *total_avg);
 
 #endif

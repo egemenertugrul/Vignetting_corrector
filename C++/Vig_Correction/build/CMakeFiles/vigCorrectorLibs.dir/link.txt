@@ -1,0 +1,2 @@
+/Library/Developer/CommandLineTools/usr/bin/ar qc libvigCorrectorLibs.a  CMakeFiles/vigCorrectorLibs.dir/src/ColorCorrection.cpp.o CMakeFiles/vigCorrectorLibs.dir/src/commonfile.cpp.o CMakeFiles/vigCorrectorLibs.dir/src/Matrix.cpp.o
+/Library/Developer/CommandLineTools/usr/bin/ranlib libvigCorrectorLibs.a

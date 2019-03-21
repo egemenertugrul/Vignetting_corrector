@@ -1,9 +1,15 @@
-#include<iostream>
-#include<cv.h>
-#include<highgui.h>
-#include<cxcore.h>
+#include <iostream> // for standard I/O
+#include <string>   // for strings
+//#include<cv.h>
+//#include<highgui.h>
+//#include<cxcore.h>
 #include "ColorCorrection.hpp"
+#include <opencv2/core.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/highgui.hpp>
+
 using namespace std;
+using namespace cv;
 
 int VignettingCorrect(IplImage* pImage)
 {
@@ -16,6 +22,7 @@ int VignettingCorrect(IplImage* pImage)
 	if (wd>75)
 		ratio = 75.0 / double(wd);
 
+	cout << "resize the image " << endl;
 	//resize the image
 	int sht = ht*ratio + 0.5;
 	int swd = wd*ratio + 0.5;
@@ -23,6 +30,7 @@ int VignettingCorrect(IplImage* pImage)
 	cvResize(pImage, pSmallImage);
 
 
+	cout << "convert image to gray" << endl; 
 	//convert from image to gray
 	IplImage* pGrayImage = NULL;
 	if (nChannels == 3)
@@ -95,7 +103,7 @@ int VignettingCorrect(IplImage* pImage)
 					vValue = vp[nV - 1];
 				}
 
-				//radius = max(0, min(nV-1, radius) );			
+				//radius = max(0, min(nV-1, radius) );
 				//double scale = 1.0 / vp[radius];
 				double scale = 1.0 / vValue;
 
@@ -115,7 +123,7 @@ int VignettingCorrect(IplImage* pImage)
 			}
 		//Estimate the Correction
 		IplImage* Estimate_temp = cvCreateImage(cvSize(swd, sht), 8, 1);
-		IplImage* Estimate= cvCreateImage(cvSize(wd, ht), 8, 1);
+		IplImage* Estimate = cvCreateImage(cvSize(wd, ht), 8, 1);
 		for (int i = 0; i < Estimate_temp->height; i++)
 		{
 			uchar* data = (uchar*)Estimate_temp->imageData + i*Estimate_temp->widthStep;
@@ -126,16 +134,24 @@ int VignettingCorrect(IplImage* pImage)
 				int r = sqrt(double(cx*cx + cy*cy)) + 0.5;
 				if (r > 0 && r < nV + 1 && vp[r-1]<1)
 					data[j] = 255 * vp[r - 1];
-					
+
 				else
 					data[j] = 255;
 
 			}
 		}
 		cvResize(Estimate_temp, Estimate);
-		cvNamedWindow("Estimate");
-		cvShowImage("Estimate", Estimate);
-		cvSaveImage("white1_Est.png", Estimate);
+		
+		Mat estimate = cvarrToMat(Estimate);
+
+		imwrite("../data/estimate.jpg", estimate);
+
+		cout << "releasing estimates" << endl;
+		cvReleaseImage(&Estimate_temp);
+		cvReleaseImage(&Estimate);
+		//cvNamedWindow("Estimate");
+		//cvShowImage("Estimate", Estimate);
+		//cvSaveImage("white1_Est.png", Estimate);
 	}
 	free(pImageBuffer);
 	cvReleaseImage(&pGrayImage);
@@ -143,23 +159,41 @@ int VignettingCorrect(IplImage* pImage)
 
 	return 0;
 }
-int main()
-{
-	IplImage* img = cvLoadImage("sea_vig.jpg");
 
-	cvNamedWindow("Image");
-	cvNamedWindow("Correction");
-	cvShowImage("Image", img);
+int main(int argc, char *argv[])
+{
+	// set a default image if non is specified via command line arguemnts
+        String imageName( "../data/test.jpg" );
+        if( argc > 1){
+                 imageName = argv[1];
+        }
+
+	cout << "loading image..." << endl;
+	Mat image; //definde varible images as cv::Mat
+ 	image = imread(imageName, IMREAD_COLOR ); // Read the file
+	//IplImage* img = cvLoadImage(argv[1]);
+
+	
+	namedWindow("Correction", WINDOW_AUTOSIZE );
+
+	// convert cv:Mat to IplImage (legacy C API type)
+	IplImage temp_image = image;
+	IplImage* img = &temp_image;
+
+	cout << "correct... image" << endl;
 	if (VignettingCorrect(img) == 0)
 	{
-		cvShowImage("Correction", img);
+		cout << "correction worked image" << endl;
+	
+		Mat corrected = cvarrToMat(img);
+		imwrite("../data/corrected.jpg", corrected);
 	}
 	else
 	{
 		cout << "error" << endl;
 	}
 
-	cvWaitKey(0);
-	cvReleaseImage(&img);
+	
 	return(0);
+
 }

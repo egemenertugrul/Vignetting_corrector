@@ -1,10 +1,10 @@
 
 //#include "stdafx.h"
 #include <Math.h>
-#include <io.h>
+// #include <uio.h>
 #include <stdio.h>
 #include "string.h"
-#include "malloc.h"
+#include <stdlib.h>
 
 #include "CommonData.h"
 #include "commonfile.h"
