@@ -1,57 +1,51 @@
 #include <iostream> // for standard I/O
 #include <string>   // for strings
-//#include<cv.h>
-//#include<highgui.h>
-//#include<cxcore.h>
 #include "ColorCorrection.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/imgcodecs.hpp>
 #include <opencv2/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 
 using namespace std;
 using namespace cv;
 
-int VignettingCorrect(IplImage* pImage)
+int VignettingCorrect(Mat matImage, String exePath)
 {
-	int ht = pImage->height;
-	int wd = pImage->width;
-	int scanWd = pImage->widthStep;
-	int nChannels = pImage->nChannels;
+	int ht = matImage.rows;
+	int wd = matImage.cols;
+	int scanWd = matImage.step;
+	int nChannels = matImage.channels();
 
 	double ratio = 1;
 	if (wd>75)
 		ratio = 75.0 / double(wd);
 
-	cout << "resize the image " << endl;
 	//resize the image
 	int sht = ht*ratio + 0.5;
 	int swd = wd*ratio + 0.5;
-	IplImage* pSmallImage = cvCreateImage(cvSize(swd, sht), 8, nChannels);
-	cvResize(pImage, pSmallImage);
+	Mat matSmallImage = Mat(sht, swd, CV_8UC(nChannels));
+	resize(matImage, matSmallImage, matSmallImage.size());
 
-
-	cout << "convert image to gray" << endl; 
 	//convert from image to gray
-	IplImage* pGrayImage = NULL;
+	Mat matGrayImage(sht, swd, CV_8UC1, Scalar(0));
 	if (nChannels == 3)
 	{
-		pGrayImage = cvCreateImage(cvSize(swd, sht), 8, 1);
-		cvCvtColor(pSmallImage, pGrayImage, CV_BGR2GRAY);
+		cvtColor(matSmallImage, matGrayImage, cv::COLOR_RGB2GRAY);
 	}
 	else
 	{
-		pGrayImage = cvCloneImage(pSmallImage);
+		matGrayImage = matSmallImage.clone();
 	}
 
 	unsigned char* pImageBuffer = (unsigned char*)malloc(sht*swd);
 	for (int j = 0; j < sht; j++)
 		for (int i = 0; i < swd; i++)
 		{
-			pImageBuffer[j*swd + i]
-				= (unsigned char)(pGrayImage->imageData[j*pGrayImage->widthStep + i]);
+			pImageBuffer[j*swd + i] = (unsigned char)(matGrayImage.data[j*matGrayImage.step + i]);
 		}
+
 	// Vignetting correction
-		vector<double> vp;
+	vector<double> vp;
 	int flag=VignettingCorrectionUsingRG(pImageBuffer, sht, swd, vp);
 
 	if (flag == 0)
@@ -76,7 +70,9 @@ int VignettingCorrect(IplImage* pImage)
 		int halfWd = wd*0.5;
 		int shalfHt = sht*0.5;
 		int shalfWd = swd*0.5;
+
 		//apply the vignetting correction
+		unsigned char* matImagePtr = (unsigned char*)(matImage.data);
 		for (int j = 0; j < ht; j++)
 			for (int i = 0; i < wd; i++)
 			{
@@ -103,90 +99,69 @@ int VignettingCorrect(IplImage* pImage)
 					vValue = vp[nV - 1];
 				}
 
-				//radius = max(0, min(nV-1, radius) );
-				//double scale = 1.0 / vp[radius];
 				double scale = 1.0 / vValue;
-
-				int r = (unsigned char)(pImage->imageData[j*scanWd + i * 3]);
-				int g = (unsigned char)(pImage->imageData[j*scanWd + i * 3 + 1]);
-				int b = (unsigned char)(pImage->imageData[j*scanWd + i * 3 + 2]);
+				int r = (unsigned char)(matImagePtr[j*scanWd + i * 3]);
+				int g = (unsigned char)(matImagePtr[j*scanWd + i * 3 + 1]);
+				int b = (unsigned char)(matImagePtr[j*scanWd + i * 3 + 2]);
 				r *= scale;
 				g *= scale;
-				b *= scale;
-
-				//pImageColor->imageData[(ht-j-1)*scanWd+i*3]   = min(255,r);
-				//pImageColor->imageData[(ht-j-1)*scanWd+i*3+1] = min(255,g);
-				//pImageColor->imageData[(ht-j-1)*scanWd+i*3+2] = min(255,b);
-				pImage->imageData[(j)*scanWd + i * 3] = min(255, r);
-				pImage->imageData[(j)*scanWd + i * 3 + 1] = min(255, g);
-				pImage->imageData[(j)*scanWd + i * 3 + 2] = min(255, b);
+				b *= scale;	
+				
+				matImagePtr[(j)*scanWd + i * 3] = min(255, r);
+				matImagePtr[(j)*scanWd + i * 3 + 1] = min(255, g);
+				matImagePtr[(j)*scanWd + i * 3 + 2] = min(255, b);				
 			}
+		
 		//Estimate the Correction
-		IplImage* Estimate_temp = cvCreateImage(cvSize(swd, sht), 8, 1);
-		IplImage* Estimate = cvCreateImage(cvSize(wd, ht), 8, 1);
-		for (int i = 0; i < Estimate_temp->height; i++)
+		Mat EstimateTemp(sht, swd, CV_8UC1, Scalar(0));
+		for (int i = 0; i < EstimateTemp.rows; i++)
 		{
-			uchar* data = (uchar*)Estimate_temp->imageData + i*Estimate_temp->widthStep;
-			for (int j = 0; j < Estimate_temp->width; j++)
+			unsigned char* data = (unsigned char*)(EstimateTemp.data) + i * EstimateTemp.step;
+			for (int j = 0; j < EstimateTemp.cols; j++)
 			{
 				int cx = i - shalfWd;
 				int cy = j - shalfHt;
 				int r = sqrt(double(cx*cx + cy*cy)) + 0.5;
 				if (r > 0 && r < nV + 1 && vp[r-1]<1)
+				{
 					data[j] = 255 * vp[r - 1];
-
+				}
 				else
+				{
 					data[j] = 255;
-
+				}
 			}
 		}
-		cvResize(Estimate_temp, Estimate);
+		Mat Estimate(ht, wd, CV_8UC1, Scalar(0));
+		resize(EstimateTemp, Estimate, Estimate.size());
 		
-		Mat estimate = cvarrToMat(Estimate);
-
-		imwrite("../data/estimate.jpg", estimate);
-
-		cout << "releasing estimates" << endl;
-		cvReleaseImage(&Estimate_temp);
-		cvReleaseImage(&Estimate);
-		//cvNamedWindow("Estimate");
-		//cvShowImage("Estimate", Estimate);
-		//cvSaveImage("white1_Est.png", Estimate);
+		String estimateImageOutputPath;
+		estimateImageOutputPath += exePath + string("../data/corrected.jpg");
+		imwrite(estimateImageOutputPath, Estimate);
 	}
 	free(pImageBuffer);
-	cvReleaseImage(&pGrayImage);
-	cvReleaseImage(&pSmallImage);
 
 	return 0;
 }
 
 int main(int argc, char *argv[])
 {
+	String executablePath(argv[0]);
+	executablePath.erase(executablePath.rfind('/') + 1);
 	// set a default image if non is specified via command line arguemnts
-        String imageName( "../data/test.jpg" );
+	String imageName = executablePath + string("../data/test.jpg");
         if( argc > 1){
                  imageName = argv[1];
         }
 
-	cout << "loading image..." << endl;
 	Mat image; //definde varible images as cv::Mat
  	image = imread(imageName, IMREAD_COLOR ); // Read the file
-	//IplImage* img = cvLoadImage(argv[1]);
 
-	
-	namedWindow("Correction", WINDOW_AUTOSIZE );
-
-	// convert cv:Mat to IplImage (legacy C API type)
-	IplImage temp_image = image;
-	IplImage* img = &temp_image;
-
-	cout << "correct... image" << endl;
-	if (VignettingCorrect(img) == 0)
+	if (VignettingCorrect(image, executablePath) == 0)
 	{
-		cout << "correction worked image" << endl;
-	
-		Mat corrected = cvarrToMat(img);
-		imwrite("../data/corrected.jpg", corrected);
+		String correctedImageOutputPath;
+		correctedImageOutputPath += executablePath + string("../data/corrected.jpg");
+		imwrite(correctedImageOutputPath, image);
 	}
 	else
 	{

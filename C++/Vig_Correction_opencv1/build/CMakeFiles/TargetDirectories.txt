@@ -1,0 +1,4 @@
+/Users/tillhainbach/Documents/Github/Vignetting_corrector/C++/Vig_Correction_opencv1/build/CMakeFiles/rebuild_cache.dir
+/Users/tillhainbach/Documents/Github/Vignetting_corrector/C++/Vig_Correction_opencv1/build/CMakeFiles/edit_cache.dir
+/Users/tillhainbach/Documents/Github/Vignetting_corrector/C++/Vig_Correction_opencv1/build/CMakeFiles/Vignetting_Corrector.dir
+/Users/tillhainbach/Documents/Github/Vignetting_corrector/C++/Vig_Correction_opencv1/build/CMakeFiles/vigCorrectorLibs.dir

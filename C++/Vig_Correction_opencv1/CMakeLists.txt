@@ -9,10 +9,6 @@ project(VignettingCorrector VERSION 0.1
 # add src subdirectory
 # add_subdirectory("${Project_SOURCE_DIR}/src" )
 
-
-set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/bin)
-set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
-
 # set sources
 set(SRCS ${PROJECT_SOURCE_DIR}/src/ColorCorrection.cpp 
 	${PROJECT_SOURCE_DIR}/src/commonfile.cpp 
@@ -33,13 +29,12 @@ target_compile_features(vigCorrectorLibs PUBLIC cxx_std_11)
 target_compile_options(vigCorrectorLibs PUBLIC -fms-extensions)
 
 # create executable
-add_executable(Vignetting_Corrector ${PROJECT_SOURCE_DIR}/app/Vig_Correction.cpp)
+add_executable(Vignetting_Corrector ${PROJECT_SOURCE_DIR}/app/Vig_Correction_opencv1.cpp)
 
 # find openCV
-#set(OpenCV_DIR "/usr/local/Cellar/opencv@3/3.4.5/share/OpenCV")
+set(OpenCV_DIR "/usr/local/Cellar/opencv@3/3.4.5/share/OpenCV")
 
-find_package(OpenCV REQUIRED)
-# PATHS ${OpenCV_DIR})
+find_package(OpenCV REQUIRED PATHS ${OpenCV_DIR})
 
 
 # ${OpenCV_LIBS}

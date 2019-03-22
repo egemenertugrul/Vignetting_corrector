@@ -3,5 +3,4 @@ mkdir build
 cd build
 cmake ..
 cmake --build . -j
-cd ..
-rm -rf build
+./Vignetting_Corrector
