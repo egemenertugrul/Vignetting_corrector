@@ -1,0 +1,7 @@
+rm -rf build
+mkdir build
+cd build
+CXX=/usr/local/Cellar/llvm/8.0.0/bin/clang++ cmake ..
+cmake --build . -j
+cd ..
+rm -rf build
