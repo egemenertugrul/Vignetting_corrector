@@ -9,10 +9,21 @@
 #include <unistd.h>
 
 using namespace std;
+using namespace experimental;
 using namespace cv;
 
 // this script handles the import of images into memory and the image writing
 // to drive. 
+
+static bool ends_with(const std::string& str, const std::string& suffix)
+{
+    return str.size() >= suffix.size() && 0 == str.compare(str.size()-suffix.size(), suffix.size(), suffix);
+}
+
+static bool starts_with(const std::string& str, const std::string& prefix)
+{
+    return str.size() >= prefix.size() && 0 == str.compare(0, prefix.size(), prefix);
+}
 
 int main(int argc, char *argv[])
 {
@@ -65,7 +76,7 @@ int main(int argc, char *argv[])
     for(const auto & entry : filesystem::directory_iterator(inputPath))
     {
         string file(entry.path());
-        if (file.ends_with(".jpg"))
+        if (ends_with(file, ".jpg"))
         {
             totalImageFiles += 1;
         }
@@ -89,7 +100,7 @@ int main(int argc, char *argv[])
         std::cout.flush(); 
 
         string file(entry.path());
-        if (file.ends_with(".jpg"))
+        if (ends_with(file, ".jpg"))
         {
             string fileName (file);
             fileName.erase(0, file.rfind('/') + 1).erase(fileName.rfind('.'));
