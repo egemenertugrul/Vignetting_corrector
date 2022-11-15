@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string.h>
 #include <chrono>
 #include "math.h"
 #include "matrix.h"
