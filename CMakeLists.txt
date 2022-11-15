@@ -9,42 +9,23 @@ project(VignettingCorrector VERSION 0.1
 # add src subdirectory
 # add_subdirectory("${Project_SOURCE_DIR}/src" )
 
+# set (CMAKE_CXX_FLAGS "-lstdc++fs -std=c++17")
 
 set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/bin)
 set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR})
 #set(OPENMP_LIBRARIES "/usr/local/Cellar/llvm/8.0.0/lib")
 #set(OPENMP_INCLUDES "/usr/local/Cellar/llvm/8.0.0/include")
 
-set(CMAKE_C_COMPILER "/usr/local/Cellar/llvm/8.0.0/bin/clang")
-set(CMAKE_CXX_COMPILER "/usr/local/Cellar/llvm/8.0.0/bin/clang++")
-set(OPENMP_LIBRARIES "/usr/local/Cellar/llvm/8.0.0/lib")
-set(OPENMP_INCLUDES "/usr/local/Cellar/llvm/8.0.0/include")
+set(CMAKE_C_COMPILER "/usr/bin/clang")
+set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
+set(OPENMP_LIBRARIES "/usr/lib/")
+set(OPENMP_INCLUDES "/usr/include")
 
 OPTION (USE_OpenMP "Use OpenMP to enamble <omp.h>" ON)
 
-# Find OpenMP
-if(APPLE AND USE_OpenMP)
-    if(CMAKE_C_COMPILER_ID MATCHES "Clang")
-        set(OpenMP_C "${CMAKE_C_COMPILER}")
-        set(OpenMP_C_FLAGS "-fopenmp=libomp -Wno-unused-command-line-argument")
-        set(OpenMP_C_LIB_NAMES "libomp" "libgomp" "libiomp5")
-        set(OpenMP_libomp_LIBRARY ${OpenMP_C_LIB_NAMES})
-        set(OpenMP_libgomp_LIBRARY ${OpenMP_C_LIB_NAMES})
-        set(OpenMP_libiomp5_LIBRARY ${OpenMP_C_LIB_NAMES})
-    endif()
-    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-      set(OpenMP_CXX "${CMAKE_CXX_COMPILER}")
-      set(OpenMP_CXX_FLAGS "-lc++fs -std=c++2a -fopenmp -Wno-unused-command-line-argument")
-#      set(OpenMP_CXX_LIB_NAMES "libomp" "libgomp" "libiomp5")
-      set(OpenMP_libomp_LIBRARY ${OpenMP_CXX_LIB_NAMES})
-      set(OpenMP_libgomp_LIBRARY ${OpenMP_CXX_LIB_NAMES})
-      set(OpenMP_libiomp5_LIBRARY ${OpenMP_CXX_LIB_NAMES})
-    endif()
-endif()
-
-# if(USE_OpenMP)
-#   find_package(OpenMP REQUIRED)
-# endif(USE_OpenMP)
+if(USE_OpenMP)
+  find_package(OpenMP REQUIRED)
+endif(USE_OpenMP)
 
 #if (OPENMP_FOUND)
     include_directories("${OPENMP_INCLUDES}")
@@ -55,8 +36,8 @@ endif()
 #endif(OPENMP_FOUND)
 
 
-include_directories(/usr/local/opt/llvm/include /Library/Developer/CommandLineTools/SDKs/MacOSX10.14.sdk/usr/include)
-link_directories(/usr/local/opt/llvm/lib)
+include_directories(/usr/lib/llvm-6.0/include)
+link_directories(/usr/lib/llvm-6.0/lib)
 
 
 
@@ -97,3 +78,5 @@ add_executable(vignettingCorrection ${PROJECT_SOURCE_DIR}/app/main.cpp)
 # link openCV libraries
 target_link_libraries(vignettingCorrection PUBLIC vigCorrectorLibs  ${OpenCV_LIBS})
 #target_compile_features(vignettingCorrection PUBLIC cxx_std_2a)
+
+target_link_libraries(vignettingCorrection PUBLIC stdc++fs)
